@@ -1,12 +1,20 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<ts:tableauExtensions xmlns:ts="http://tableau.com/api">
-  <ts:extension id="tableau-comments-ext"
-                version="1.0"
-                name="Tableau Comments Extension"
-                author="Dharmendra"
-                minApiVersion="1.4">
-    <ts:source>index.html</ts:source>
-    <ts:description>Add comments using Power Apps</ts:description>
-    <ts:icon>icon.png</ts:icon>
-  </ts:extension>
-</ts:tableauExtensions>
+<?xml version="1.0" encoding="utf-8"?>
+<tableauExtensions xmlns="http://www.tableau.com/xml/extension">
+  <dashboardExtension id="tableau-comments-ext"
+                      extensionVersion="1.0.0"
+                      name="Tableau Comments Extension"
+                      author="Dharmendra"
+                      minApiVersion="1.5">
+                      
+    <sourceLocation>
+      <url>https://aboutdharam.github.io/tableau-comments-extension/index.html</url>
+    </sourceLocation>
+
+    <icon>icon.png</icon>
+
+    <description>
+      Add comments through Power Apps (SharePoint List storage)
+    </description>
+
+  </dashboardExtension>
+</tableauExtensions>
