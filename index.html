@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>Tableau Comment Extension</title>
 
-  <!-- Allow https iframes/scripts; needed when hosted in Tableau Cloud -->
+  <!-- CSP: allow https frames/scripts; needed for Power Apps + local JS -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self' https:; img-src 'self' https: data:;
                  script-src 'self' https: 'unsafe-inline';
@@ -17,12 +17,14 @@
     #powerAppsFrame { border: 0; width: 100%; height: 800px; }
     #formContainer { display: none; margin-top: 16px; }
     #debug { margin-top: 10px; font-size: 12px; color: #444; white-space: pre-wrap; }
+    #status { margin: 6px 0; color: #666; }
   </style>
 </head>
 <body>
   <h3>Add Comment</h3>
 
-  <button id="openFormBtn">Open Comment Form</button>
+  <div id="status">Initializing extension…</div>
+  <button id="openFormBtn" disabled>Open Comment Form</button>
 
   <div id="formContainer">
     <iframe id="powerAppsFrame"
@@ -31,13 +33,13 @@
 
   <div id="debug">Debug output will appear here…</div>
 
-  <!-- Load libs after the DOM -->
+  <!-- Load jQuery (optional) AFTER DOM -->
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 
-  <!-- Tableau Extensions API (required inside Cloud/Desktop) -->
-  <script src="https://cdn.jsdelivr.net/npm/@tableau/extensions-api@1.10.0/lib/tableau.extensions.1.10.0.min.js"></script>
+  <!-- Load the Tableau Extensions API from your repo (local copy) -->
+  <script src="tableau.extensions.1.10.0.min.js"></script>
 
-  <!-- Your code; add a cache-buster so GitHub doesn’t serve an old file -->
-  <script src="extension.js?v=2026-02-17-02"></script>
+  <!-- Your code, add cache-buster so GitHub doesn't serve stale JS -->
+  <script src="extension.js?v=2026-02-17-03"></script>
 </body>
 </html>
