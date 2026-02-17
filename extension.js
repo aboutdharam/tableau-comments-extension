@@ -120,3 +120,8 @@
 
   init();
 })();
+
+// After computing finalUrl
+console.log("PowerApps final URL:", finalUrl);
+const dbg = document.getElementById('debug');
+if (dbg) dbg.textContent += `\nPowerApps final URL: ${finalUrl}`;
