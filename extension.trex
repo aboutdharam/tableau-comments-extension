@@ -1,15 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns="http://www.tableau.com/xml/extension_manifest" manifest-version="0.1">
-  <dashboard-extension id="com.company.commentextension" extension-version="1.0.0">
+
+  <dashboard-extension id="com.company.sharepoint.comments" extension-version="1.0.0">
+
     <default-locale>en_US</default-locale>
+
     <name>SharePoint Comment Extension</name>
-    <description>Add comments to SharePoint</description>
-    <author name="Your Company"/>
+
+    <description>Write back formatted comments to SharePoint list</description>
+
+    <author name="Your Company"
+            email="your.email@company.com"
+            website="https://github.com/aboutdharam" />
+
     <min-api-version>1.9</min-api-version>
 
     <source-location>
       <url>https://aboutdharam.github.io/tableau-comment-extension/index.html</url>
     </source-location>
 
+    <icon></icon>
+
   </dashboard-extension>
+
 </manifest>
