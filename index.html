@@ -1,24 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Tableau Comment Extension</title>
-<script src="https://cdn.jsdelivr.net/npm/jquery"></script>
-<script src="extension.js"></script>
+  <meta charset="utf-8" />
+  <title>Tableau Comment Extension</title>
+
+  <!-- Minimal, permissive CSP so iframes over https can load -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https:; img-src 'self' https: data:;
+                 script-src 'self' https: 'unsafe-inline';
+                 style-src 'self' https: 'unsafe-inline';
+                 frame-src https:; connect-src https:;">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; margin: 12px; }
+    #openFormBtn { padding: 8px 14px; cursor: pointer; }
+    #powerAppsFrame { border: 0; width: 100%; height: 800px; }
+    #formContainer { display: none; margin-top: 16px; }
+    #debug { margin-top: 10px; font-size: 12px; color: #444; white-space: pre-wrap; }
+  </style>
 </head>
+<body>
+  <h3>Add Comment</h3>
 
-<body style="font-family:Segoe UI;">
-    <h3>Add Comment</h3>
+  <button id="openFormBtn">Open Comment Form</button>
 
-    <button id="openFormBtn" style="padding:10px 20px;">
-        Open Comment Form
-    </button>
+  <div id="formContainer">
+    <iframe id="powerAppsFrame"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+  </div>
 
-    <div id="formContainer" style="margin-top:20px; display:none;">
-        <iframe id="powerAppsFrame"
-                width="100%"
-                height="650px"
-                style="border:none;">
-        </iframe>
-    </div>
+  <div id="debug">Debug output will appear here…</div>
+
+  <!-- Load libs at the end so the DOM is ready -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+
+  <!-- Tableau Extensions API (needed when running inside Tableau) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tableau/extensions-api@1.10.0/lib/tableau.extensions.1.10.0.min.js"></script>
+
+  <!-- Your code, with a cache-buster so GitHub Pages doesn’t serve an old file -->
+  <script src="extension.js?v=2026-02-17-01"></script>
 </body>
 </html>
