@@ -10,18 +10,17 @@
     if (debugEl) debugEl.textContent += `\n${line}${obj ? ' ' + JSON.stringify(obj) : ''}`;
   }
 
-  // --- 0) Sanity: elements exist
   if (!btn || !frame || !container) {
     log('ERROR: Missing required HTML elements (openFormBtn / powerAppsFrame / formContainer).');
     return;
   }
 
-  // --- 1) Determine if we are inside Tableau (Extensions API available)
+  // Are we running inside Tableau?
   const inTableau = !!(window.tableau &&
                        tableau.extensions &&
                        typeof tableau.extensions.initializeAsync === 'function');
 
-  // --- 2) Utilities (used in Tableau mode)
+  // Helpers (used in Tableau mode)
   async function getParam(name) {
     try {
       const dashboard = tableau.extensions.dashboardContent.dashboard;
@@ -49,11 +48,10 @@
     catch (e) { log('ERROR reading environment username', e); return ''; }
   }
 
-  // --- 3) Your Power Apps base URL (IMPORTANT: use plain & not &amp;)
+  // Your Power Apps base URL (IMPORTANT: plain & not &amp;)
   const baseUrl =
     'https://apps.powerapps.com/play/e/default-dc265699-74fc-490e-b9d0-f41eb1055450/a/a5f0a652-a3d3-4676-b992-8c1e894b2b6c?tenantId=dc265699-74fc-490e-b9d0-f41eb1055450&hint=6e87fd1b-7859-4e05-9922-75b435dc5802&source=sharebutton';
 
-  // Safety: if someone pasted &amp; by mistake, normalize it:
   const normalizedBaseUrl = baseUrl.replace(/&amp;/g, '&');
 
   async function buildPowerAppsUrl_Tableau() {
@@ -71,6 +69,7 @@
       StartDate:     StartDate ?? '',
       EndDate:       EndDate ?? '',
       Username:      Username ?? ''
+      // Period & Comment are intentionally user-entered in Power Apps
     });
 
     const finalUrl = `${normalizedBaseUrl}&${qp.toString()}`;
@@ -78,14 +77,12 @@
     return finalUrl;
   }
 
-  // Fallback for plain browser (no Tableau): open base URL only
   async function buildPowerAppsUrl_Browser() {
     const finalUrl = normalizedBaseUrl;
     log('Final Power Apps URL (Browser fallback) built.', { finalUrl });
     return finalUrl;
   }
 
-  // --- 4) Initialize (if in Tableau), then wire up the button
   async function init() {
     if (inTableau) {
       try {
@@ -121,6 +118,5 @@
     log('Ready. Click "Open Comment Form".');
   }
 
-  // Start
   init();
 })();

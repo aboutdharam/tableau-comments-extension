@@ -4,13 +4,12 @@
   <meta charset="utf-8" />
   <title>Tableau Comment Extension</title>
 
-  <!-- Minimal, permissive CSP so iframes over https can load -->
+  <!-- Allow https iframes/scripts; needed when hosted in Tableau Cloud -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self' https:; img-src 'self' https: data:;
                  script-src 'self' https: 'unsafe-inline';
                  style-src 'self' https: 'unsafe-inline';
                  frame-src https:; connect-src https:;">
-
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body { font-family: Segoe UI, Arial, sans-serif; margin: 12px; }
@@ -32,13 +31,13 @@
 
   <div id="debug">Debug output will appear here…</div>
 
-  <!-- Load libs at the end so the DOM is ready -->
+  <!-- Load libs after the DOM -->
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 
-  <!-- Tableau Extensions API (needed when running inside Tableau) -->
+  <!-- Tableau Extensions API (required inside Cloud/Desktop) -->
   <script src="https://cdn.jsdelivr.net/npm/@tableau/extensions-api@1.10.0/lib/tableau.extensions.1.10.0.min.js"></script>
 
-  <!-- Your code, with a cache-buster so GitHub Pages doesn’t serve an old file -->
-  <script src="extension.js?v=2026-02-17-01"></script>
+  <!-- Your code; add a cache-buster so GitHub doesn’t serve an old file -->
+  <script src="extension.js?v=2026-02-17-02"></script>
 </body>
 </html>
