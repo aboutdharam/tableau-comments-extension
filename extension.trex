@@ -8,7 +8,7 @@
     <min-api-version>1.9</min-api-version>
 
     <source-location>
-      <url>PASTE_GITHUB_URL/index.html</url>
+      <url>https://aboutdharam.github.io/tableau-comment-extension/index.html</url>
     </source-location>
   </dashboard-extension>
 </manifest>
