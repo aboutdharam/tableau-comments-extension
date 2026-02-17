@@ -1,1 +1,1 @@
-# tableau-comment-extension
+# tableau-comments-extension
