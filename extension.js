@@ -38,11 +38,7 @@
     return sheets.length > 0 ? sheets[0].name : '';
   }
   function getUsername() {
-  // Prefer uniqueUserId when available; fall back to blank
-  const env = tableau.extensions.environment;
-  return (env && typeof env.uniqueUserId === 'string' && env.uniqueUserId) ? env.uniqueUserId : '';
-}
-
+    return tableau.extensions.environment.username || '';
   }
 
   async function buildPowerAppsUrl_Tableau() {
