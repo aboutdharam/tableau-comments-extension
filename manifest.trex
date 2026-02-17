@@ -2,54 +2,31 @@
 <manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
   <dashboard-extension id="com.dg.tableau.comments"
                        extension-version="1.0.0">
-                       
     <default-locale>en_US</default-locale>
-
-    <!-- The name shown to users; this references the resource below -->
     <name resource-id="ext_name"/>
-
     <description>Add comments via Power Apps (SharePoint-backed).</description>
-
     <author name="Dharmendra Gupta"
             email="you@example.com"
             organization="Your Org"
             website="https://example.com"/>
-
-    <!-- Minimum Extensions API version your code uses -->
     <min-api-version>1.5</min-api-version>
-
-    <!-- Where Tableau will load your UI from (must be HTTPS for Cloud) -->
     <source-location>
-      <url>https://https://aboutdharam.github.io/tableau-comments-extension/index.html</url>
+      <url>https://aboutdharam.github.io/tableau-comments-extension/index.html</url>
     </source-location>
-
-    <!-- Optional: icon as Base64 PNG (recommended). You can remove this element if not ready -->
-    <icon> icon.png
-    </icon>
-
-    <!-- Data access prompt behavior (optional; remove if not needed) -->
     <permissions>
       <permission>full data</permission>
     </permissions>
-
-    <!-- Optional gear menu item for “Configure” -->
     <context-menu>
       <configure-context-menu-item />
     </context-menu>
-
   </dashboard-extension>
 
-  <!-- Localized strings used by <name resource-id="..."> above -->
   <resources>
     <resource id="ext_name">
       <text locale="en_US">Tableau Comments Extension</text>
     </resource>
   </resources>
 </manifest>
-
-
-
-
 
 
 
