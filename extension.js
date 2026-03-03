@@ -94,7 +94,7 @@
     const IssuerName    = await getParam('Issuer Name Param'); // exact Tableau parameter names
     const StartDate     = await getParam('Start Date');
     const EndDate       = await getParam('End Date');
-    const Location       = await getParam('Issuer Country');
+    const IssuerCountry       = await getParam('Issuer Country');
 
     const qp = new URLSearchParams({
       DashboardName: DashboardName ?? '',
@@ -102,7 +102,7 @@
       IssuerName:    IssuerName ?? '',
       StartDate:     StartDate ?? '',
       EndDate:       EndDate ?? '',
-      Location:      Location ?? '',
+      IssuerCountry:      IssuerCountry ?? '',
       Username:      Username ?? ''
     });
 
