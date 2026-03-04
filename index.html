@@ -6,11 +6,14 @@
 
   <!-- CSP: allow https iframes/scripts; needed for Power Apps + local JS -->
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' https:; img-src 'self' https: data:;
+        content="default-src 'self' https:;
+                 img-src 'self' https: data:;
                  script-src 'self' https: 'unsafe-inline';
                  style-src 'self' https: 'unsafe-inline';
-                 frame-src https:; connect-src https:;">
+                 frame-src https:;
+                 connect-src https:;" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
     body { font-family: Segoe UI, Arial, sans-serif; margin: 12px; }
     #openFormBtn { padding: 8px 14px; cursor: pointer; }
@@ -18,16 +21,23 @@
     #formContainer { display: none; margin-top: 16px; }
     #debug { margin-top: 10px; font-size: 12px; color: #444; white-space: pre-wrap; }
     #status { margin: 6px 0; color: #666; }
+    /* Optional: if you prefer class-based show/hide */
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <h3>Add Comment</h3>
+  <!-- CHANGE: added id="titleSection" so extension.js can hide this header after click -->
+  <h3 id="titleSection">Add Comment</h3>
 
   <div id="status">Initializing extension…</div>
+
+  <!-- The button will be hidden after click by extension.js -->
   <button id="openFormBtn" disabled>Open Comment Form</button>
 
+  <!-- The container is shown after click by extension.js -->
   <div id="formContainer">
     <iframe id="powerAppsFrame"
+            title="Power Apps Form"
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
   </div>
 
@@ -61,7 +71,7 @@
     })();
   </script>
 
-  <!-- Your app; bump v= to bypass GitHub cache when you update -->
-  <script src="extension.js?v=2026-02-18-22"></script>
+  <!-- Your app; you can bump the v= to bust cache after updates -->
+  <script src="extension.js?v=2026-03-04-01"></script>
 </body>
 </html>

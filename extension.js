@@ -5,6 +5,9 @@
   const frame = document.getElementById('powerAppsFrame');
   const container = document.getElementById('formContainer');
 
+  // CHANGE: reference to the “Add Comment” header so we can hide it
+  const titleSection = document.getElementById('titleSection');
+
   function log(msg, obj) {
     const line = `[${new Date().toLocaleTimeString()}] ${msg}`;
     console.log(line, obj ?? '');
@@ -12,14 +15,13 @@
     if (statusEl) statusEl.textContent = msg;
   }
 
-  // NOTE: Keep the sanity check, but use logical OR (||) for readability.
+  // Sanity check for required elements
   if (!btn || !frame || !container) {
     log('ERROR: Missing HTML elements (openFormBtn / powerAppsFrame / formContainer).');
     return;
   }
 
-  // Power Apps base URL — must be plain & (not &amp;)
-  // NOTE: This URL is already using plain '&'. No replace() needed.
+  // Power Apps base URL — IMPORTANT: use plain '&' (no HTML entities)
   const baseUrl =
     'https://apps.powerapps.com/play/e/default-dc265699-74fc-490e-b9d0-f41eb1055450/a/a5f0a652-a3d3-4676-b992-8c1e894b2b6c?tenantId=dc265699-74fc-490e-b9d0-f41eb1055450&hint=6e87fd1b-7859-4e05-9922-75b435dc5802&source=sharebutton&source=iframe&hideNavBar=true';
 
@@ -36,7 +38,7 @@
     const params = await dashboard.getParametersAsync();
     const p = params.find(x => x.name === name);
     if (!p) log(`WARN: Tableau parameter not found: "${name}"`);
-    // NOTE: prefer formattedValue when present; fallback to raw value
+    // Prefer formattedValue for strings, fallback to raw value
     const v = p?.currentValue;
     return v?.formattedValue ?? v?.value ?? '';
   }
@@ -50,15 +52,13 @@
     return sheets.length > 0 ? sheets[0].name : '';
   }
 
-  // Preferred: USERNAME() from worksheet named EXACTLY "Username"
+  // Preferred: USERNAME() from a worksheet named EXACTLY "Username"
   async function getUsernameFromSheet() {
     try {
       const dashboard = tableau.extensions.dashboardContent.dashboard;
       const ws = dashboard.worksheets.find(w => w.name === 'Username');
       if (!ws) { log('WARN: Worksheet "Username" NOT found on this dashboard.'); return ''; }
 
-      // ignoreSelection prevents mark selections from blanking the cell;
-      // global dashboard filters can still blank it, so exclude this sheet from those filters.
       const summary = await ws.getSummaryDataAsync({ maxRows: 1, ignoreSelection: true });
       const cell = summary.data?.[0]?.[0];
       const raw = cell?.formattedValue ?? cell?.value ?? '';
@@ -70,7 +70,7 @@
     }
   }
 
-  // Fallback: environment.uniqueUserId (when exposed on your site)
+  // Fallback: environment.uniqueUserId (if exposed)
   function getEnvironmentUserFallback() {
     try {
       const env = tableau.extensions.environment;
@@ -94,22 +94,23 @@
     const ViewName      = getViewName();
     const Username      = await resolveUsername();
 
-    const IssuerName    = await getParam('Issuer Name Param'); // exact Tableau parameter names
+    // Make sure these names EXACTLY match your Tableau parameters
+    const IssuerName    = await getParam('Issuer Name Param');
     const StartDate     = await getParam('Start Date');
     const EndDate       = await getParam('End Date');
-    const IssuerCountry = await getParam('Issuer Country');    // make sure the Tableau parameter matches exactly
+    const IssuerCountry = await getParam('Issuer Country');
 
+    // Build query params safely
     const qp = new URLSearchParams({
       DashboardName: DashboardName ?? '',
       ViewName:      ViewName ?? '',
       IssuerName:    IssuerName ?? '',
       StartDate:     StartDate ?? '',
       EndDate:       EndDate ?? '',
-      IssuerCountry: IssuerCountry ?? '', // send key that Power Apps expects
+      IssuerCountry: IssuerCountry ?? '',
       Username:      Username ?? ''
     });
 
-    // NOTE: Use real '&' concatenation. Power Apps expects standard query string.
     const finalUrl = `${baseUrl}&${qp.toString()}`;
     log('Final Power Apps URL built.', { finalUrl });
     return finalUrl;
@@ -147,21 +148,27 @@
     // List the worksheets ON THIS DASHBOARD so you can verify "Username" appears
     await listDashboardWorksheets();
 
+    // Enable the button once API is ready
     btn.disabled = false;
 
     btn.addEventListener('click', async () => {
       log('"Open Comment Form" clicked.');
       try {
-        // CHANGE: Hide the button immediately after it’s clicked,
-        // so only the form (iframe) remains visible.
-        btn.style.display = 'none';
+        // CHANGE: Hide all top UI elements so only the form remains
+        btn.style.display = 'none';                           // hide the button
+        if (titleSection) titleSection.style.display = 'none';// hide "Add Comment" header
+        if (statusEl) statusEl.style.display = 'none';        // hide status line
+        if (debugEl) debugEl.style.display = 'none';          // hide debug panel
 
         const url = await buildPowerAppsUrl();
         if (!url || !url.startsWith('https://apps.powerapps.com/')) {
           log('ERROR: Built URL is empty or invalid.', { url });
 
-          // CHANGE: If URL is invalid, show the button again so user can retry.
-          btn.style.display = ''; // revert to default (visible)
+          // CHANGE: Restore UI if something failed so the user can retry
+          btn.style.display = '';
+          if (titleSection) titleSection.style.display = '';
+          if (statusEl) statusEl.style.display = '';
+          if (debugEl) debugEl.style.display = '';
           return;
         }
 
@@ -171,8 +178,11 @@
       } catch (e) {
         log('ERROR while building or setting iframe URL.', e);
 
-        // CHANGE: On unexpected error, also restore the button so user can retry.
+        // CHANGE: Restore UI on unexpected error so the user can retry
         btn.style.display = '';
+        if (titleSection) titleSection.style.display = '';
+        if (statusEl) statusEl.style.display = '';
+        if (debugEl) debugEl.style.display = '';
       }
     });
 
