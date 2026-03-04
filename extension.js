@@ -5,31 +5,31 @@
   const frame = document.getElementById('powerAppsFrame');
   const container = document.getElementById('formContainer');
 
-  // CHANGE: reference to the “Add Comment” header so we can hide it
+  // Added: Header element so we can hide it
   const titleSection = document.getElementById('titleSection');
 
   function log(msg, obj) {
     const line = `[${new Date().toLocaleTimeString()}] ${msg}`;
-    console.log(line, obj ?? '');
-    if (debugEl) debugEl.textContent += `\n${line}${obj ? ' ' + JSON.stringify(obj) : ''}`;
+    console.log(line, obj ?? "");
+    if (debugEl) debugEl.textContent += `\n${line}${obj ? " " + JSON.stringify(obj) : ""}`;
     if (statusEl) statusEl.textContent = msg;
   }
 
-  // Sanity check for required elements
   if (!btn || !frame || !container) {
-    log('ERROR: Missing HTML elements (openFormBtn / powerAppsFrame / formContainer).');
+    log("ERROR: Missing HTML elements.");
     return;
   }
 
-  // Power Apps base URL — IMPORTANT: use plain '&' (no HTML entities)
+  // Base PowerApps URL (must contain & not &amp;)
   const baseUrl =
-    'https://apps.powerapps.com/play/e/default-dc265699-74fc-490e-b9d0-f41eb1055450/a/a5f0a652-a3d3-4676-b992-8c1e894b2b6c?tenantId=dc265699-74fc-490e-b9d0-f41eb1055450&hint=6e87fd1b-7859-4e05-9922-75b435dc5802&source=sharebutton&source=iframe&hideNavBar=true';
+    "https://apps.powerapps.com/play/e/default-dc265699-74fc-490e-b9d0-f41eb1055450/a/a5f0a652-a3d3-4676-b992-8c1e894b2b6c?tenantId=dc265699-74fc-490e-b9d0-f41eb1055450&hint=6e87fd1b-7859-4e05-9922-75b435dc5802&source=sharebutton&source=iframe&hideNavBar=true";
 
-  // ---------- Tableau helpers ----------
+  // ---------- Helper functions ----------
+
   async function listDashboardWorksheets() {
     const ws = tableau.extensions.dashboardContent.dashboard.worksheets || [];
     const names = ws.map(w => w.name);
-    log('Worksheets present on this dashboard:', names);
+    log("Worksheets present:", names);
     return names;
   }
 
@@ -37,152 +37,162 @@
     const dashboard = tableau.extensions.dashboardContent.dashboard;
     const params = await dashboard.getParametersAsync();
     const p = params.find(x => x.name === name);
-    if (!p) log(`WARN: Tableau parameter not found: "${name}"`);
-    // Prefer formattedValue for strings, fallback to raw value
+    if (!p) log(`WARN: Tableau parameter missing: ${name}`);
     const v = p?.currentValue;
-    return v?.formattedValue ?? v?.value ?? '';
+    return v?.formattedValue ?? v?.value ?? "";
   }
 
   function getDashboardName() {
-    return tableau.extensions.dashboardContent.dashboard.name || '';
+    return tableau.extensions.dashboardContent.dashboard.name || "";
   }
 
   function getViewName() {
     const sheets = tableau.extensions.dashboardContent.dashboard.worksheets || [];
-    return sheets.length > 0 ? sheets[0].name : '';
+    return sheets.length > 0 ? sheets[0].name : "";
   }
 
-  // Preferred: USERNAME() from a worksheet named EXACTLY "Username"
+  // -------- USERNAME SHEET FETCH --------
   async function getUsernameFromSheet() {
     try {
       const dashboard = tableau.extensions.dashboardContent.dashboard;
-      const ws = dashboard.worksheets.find(w => w.name === 'Username');
-      if (!ws) { log('WARN: Worksheet "Username" NOT found on this dashboard.'); return ''; }
+      const ws = dashboard.worksheets.find(w => w.name === "Username");
+      if (!ws) return "";
 
       const summary = await ws.getSummaryDataAsync({ maxRows: 1, ignoreSelection: true });
       const cell = summary.data?.[0]?.[0];
-      const raw = cell?.formattedValue ?? cell?.value ?? '';
-      log('Username read from "Username" sheet:', { raw });
-      return raw || '';
+      const raw = cell?.formattedValue ?? cell?.value ?? "";
+      return raw || "";
     } catch (e) {
-      log('ERROR reading USERNAME() from sheet "Username"', e);
-      return '';
+      return "";
     }
   }
 
-  // Fallback: environment.uniqueUserId (if exposed)
   function getEnvironmentUserFallback() {
     try {
-      const env = tableau.extensions.environment;
-      const uid = (env && typeof env.uniqueUserId === 'string') ? env.uniqueUserId : '';
-      if (uid) log('Using fallback uniqueUserId as Username.', { uniqueUserId: uid });
-      return uid || '';
-    } catch (e) {
-      log('ERROR reading environment.uniqueUserId', e);
-      return '';
+      const uid = tableau.extensions.environment?.uniqueUserId;
+      return typeof uid === "string" ? uid : "";
+    } catch {
+      return "";
     }
   }
 
   async function resolveUsername() {
-    const fromSheet = await getUsernameFromSheet();
-    if (fromSheet) return fromSheet;
-    return getEnvironmentUserFallback();
+    const sheetVal = await getUsernameFromSheet();
+    return sheetVal || getEnvironmentUserFallback();
   }
 
+  // -------- CARDNAME SHEET FETCH (NEW) --------
+  async function getCardNameFromSheet() {
+    try {
+      const dashboard = tableau.extensions.dashboardContent.dashboard;
+      const ws = dashboard.worksheets.find(w => w.name === "CardName");
+      if (!ws) {
+        log('WARN: Worksheet "CardName" NOT found.');
+        return "";
+      }
+
+      const summary = await ws.getSummaryDataAsync({ maxRows: 1, ignoreSelection: true });
+      const cell = summary.data?.[0]?.[0];
+      const raw = cell?.formattedValue ?? cell?.value ?? "";
+
+      log("CardName fetched:", raw);
+      return raw || "";
+    } catch (e) {
+      log("ERROR reading CardName sheet", e);
+      return "";
+    }
+  }
+
+  // -------- BUILD PowerApps URL --------
   async function buildPowerAppsUrl() {
     const DashboardName = getDashboardName();
-    const ViewName      = getViewName();
-    const Username      = await resolveUsername();
+    const ViewName = getViewName();
+    const Username = await resolveUsername();
 
-    // Make sure these names EXACTLY match your Tableau parameters
-    const IssuerName    = await getParam('Issuer Name Param');
-    const StartDate     = await getParam('Start Date');
-    const EndDate       = await getParam('End Date');
-    const IssuerCountry = await getParam('Issuer Country');
+    const IssuerName = await getParam("Issuer Name Param");
+    const StartDate = await getParam("Start Date");
+    const EndDate = await getParam("End Date");
+    const IssuerCountry = await getParam("Issuer Country");
 
-    // Build query params safely
+    // NEW: fetch CardName from sheet
+    const CardName = await getCardNameFromSheet();
+
     const qp = new URLSearchParams({
-      DashboardName: DashboardName ?? '',
-      ViewName:      ViewName ?? '',
-      IssuerName:    IssuerName ?? '',
-      StartDate:     StartDate ?? '',
-      EndDate:       EndDate ?? '',
-      IssuerCountry: IssuerCountry ?? '',
-      Username:      Username ?? ''
+      DashboardName,
+      ViewName,
+      IssuerName,
+      StartDate,
+      EndDate,
+      IssuerCountry,
+      Username,
+      CardName   // <--- NEW FIELD passed to Power Apps
     });
 
     const finalUrl = `${baseUrl}&${qp.toString()}`;
-    log('Final Power Apps URL built.', { finalUrl });
+    log("Final PowerApps URL:", finalUrl);
     return finalUrl;
   }
 
-  // Wait for Extensions API (up to 10s)
+  // -------- Init and UI hide/show logic --------
   async function waitForExtensionsApi(timeoutMs = 10000) {
-    const t0 = Date.now();
-    while (Date.now() - t0 < timeoutMs) {
-      if (window.tableau && tableau.extensions && typeof tableau.extensions.initializeAsync === 'function') {
-        return true;
-      }
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      if (window.tableau?.extensions?.initializeAsync) return true;
       await new Promise(r => setTimeout(r, 100));
     }
     return false;
   }
 
   async function init() {
-    log('Initializing extension…');
+    log("Initializing extension…");
 
-    const ok = await waitForExtensionsApi();
-    if (!ok) {
-      log('ERROR: Tableau Extensions API not detected. Ensure this is added as an Extension (not Web Page) and API script loaded.');
+    if (!(await waitForExtensionsApi())) {
+      log("ERROR: Tableau Extensions API missing.");
       return;
     }
 
     try {
       await tableau.extensions.initializeAsync();
-      log('Tableau extensions initialized.');
     } catch (e) {
-      log('ERROR initializing Tableau extensions.', e);
+      log("ERROR init:", e);
       return;
     }
 
-    // List the worksheets ON THIS DASHBOARD so you can verify "Username" appears
     await listDashboardWorksheets();
-
-    // Enable the button once API is ready
     btn.disabled = false;
 
-    btn.addEventListener('click', async () => {
-      log('"Open Comment Form" clicked.');
+    btn.addEventListener("click", async () => {
+      log('Open Comment Form clicked');
+
+      // Hide top UI
+      btn.style.display = "none";
+      if (titleSection) titleSection.style.display = "none";
+      if (statusEl) statusEl.style.display = "none";
+      if (debugEl) debugEl.style.display = "none";
+
       try {
-        // CHANGE: Hide all top UI elements so only the form remains
-        btn.style.display = 'none';                           // hide the button
-        if (titleSection) titleSection.style.display = 'none';// hide "Add Comment" header
-        if (statusEl) statusEl.style.display = 'none';        // hide status line
-        if (debugEl) debugEl.style.display = 'none';          // hide debug panel
-
         const url = await buildPowerAppsUrl();
-        if (!url || !url.startsWith('https://apps.powerapps.com/')) {
-          log('ERROR: Built URL is empty or invalid.', { url });
+        if (!url.startsWith("https://apps.powerapps.com/")) {
+          log("Invalid URL generated", url);
 
-          // CHANGE: Restore UI if something failed so the user can retry
-          btn.style.display = '';
-          if (titleSection) titleSection.style.display = '';
-          if (statusEl) statusEl.style.display = '';
-          if (debugEl) debugEl.style.display = '';
+          // Restore UI if error
+          btn.style.display = "";
+          if (titleSection) titleSection.style.display = "";
+          if (statusEl) statusEl.style.display = "";
+          if (debugEl) debugEl.style.display = "";
           return;
         }
 
         frame.src = url;
-        container.style.display = 'block';
-        log('Iframe src set and container shown.');
+        container.style.display = "block";
       } catch (e) {
-        log('ERROR while building or setting iframe URL.', e);
+        log("ERROR while opening form", e);
 
-        // CHANGE: Restore UI on unexpected error so the user can retry
-        btn.style.display = '';
-        if (titleSection) titleSection.style.display = '';
-        if (statusEl) statusEl.style.display = '';
-        if (debugEl) debugEl.style.display = '';
+        // Restore UI
+        btn.style.display = "";
+        if (titleSection) titleSection.style.display = "";
+        if (statusEl) statusEl.style.display = "";
+        if (debugEl) debugEl.style.display = "";
       }
     });
 
