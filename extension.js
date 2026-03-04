@@ -12,15 +12,16 @@
     if (statusEl) statusEl.textContent = msg;
   }
 
+  // NOTE: Keep the sanity check, but use logical OR (||) for readability.
   if (!btn || !frame || !container) {
     log('ERROR: Missing HTML elements (openFormBtn / powerAppsFrame / formContainer).');
     return;
   }
 
   // Power Apps base URL — must be plain & (not &amp;)
-  const baseUrlRaw =
+  // NOTE: This URL is already using plain '&'. No replace() needed.
+  const baseUrl =
     'https://apps.powerapps.com/play/e/default-dc265699-74fc-490e-b9d0-f41eb1055450/a/a5f0a652-a3d3-4676-b992-8c1e894b2b6c?tenantId=dc265699-74fc-490e-b9d0-f41eb1055450&hint=6e87fd1b-7859-4e05-9922-75b435dc5802&source=sharebutton&source=iframe&hideNavBar=true';
-  const baseUrl = baseUrlRaw.replace(/&amp;/g, '&');
 
   // ---------- Tableau helpers ----------
   async function listDashboardWorksheets() {
@@ -35,7 +36,9 @@
     const params = await dashboard.getParametersAsync();
     const p = params.find(x => x.name === name);
     if (!p) log(`WARN: Tableau parameter not found: "${name}"`);
-    return p ? p.currentValue.value : '';
+    // NOTE: prefer formattedValue when present; fallback to raw value
+    const v = p?.currentValue;
+    return v?.formattedValue ?? v?.value ?? '';
   }
 
   function getDashboardName() {
@@ -94,7 +97,7 @@
     const IssuerName    = await getParam('Issuer Name Param'); // exact Tableau parameter names
     const StartDate     = await getParam('Start Date');
     const EndDate       = await getParam('End Date');
-    const IssuerCountry       = await getParam('Issuer Country');
+    const IssuerCountry = await getParam('Issuer Country');    // make sure the Tableau parameter matches exactly
 
     const qp = new URLSearchParams({
       DashboardName: DashboardName ?? '',
@@ -102,10 +105,11 @@
       IssuerName:    IssuerName ?? '',
       StartDate:     StartDate ?? '',
       EndDate:       EndDate ?? '',
-      IssuerCountry:      IssuerCountry ?? '',
+      IssuerCountry: IssuerCountry ?? '', // send key that Power Apps expects
       Username:      Username ?? ''
     });
 
+    // NOTE: Use real '&' concatenation. Power Apps expects standard query string.
     const finalUrl = `${baseUrl}&${qp.toString()}`;
     log('Final Power Apps URL built.', { finalUrl });
     return finalUrl;
@@ -148,16 +152,27 @@
     btn.addEventListener('click', async () => {
       log('"Open Comment Form" clicked.');
       try {
+        // CHANGE: Hide the button immediately after it’s clicked,
+        // so only the form (iframe) remains visible.
+        btn.style.display = 'none';
+
         const url = await buildPowerAppsUrl();
         if (!url || !url.startsWith('https://apps.powerapps.com/')) {
           log('ERROR: Built URL is empty or invalid.', { url });
+
+          // CHANGE: If URL is invalid, show the button again so user can retry.
+          btn.style.display = ''; // revert to default (visible)
           return;
         }
+
         frame.src = url;
         container.style.display = 'block';
         log('Iframe src set and container shown.');
       } catch (e) {
         log('ERROR while building or setting iframe URL.', e);
+
+        // CHANGE: On unexpected error, also restore the button so user can retry.
+        btn.style.display = '';
       }
     });
 
