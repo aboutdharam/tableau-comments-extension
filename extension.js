@@ -113,6 +113,7 @@
     const StartDate = await getParam("Start Date");
     const EndDate = await getParam("End Date");
     const IssuerCountry = await getParam("Issuer Country");
+    const QBR_Periods = await getParam("QBR Period Comments");
 
     // NEW: fetch CardName from sheet
     const CardName = await getCardNameFromSheet();
@@ -124,6 +125,7 @@
       StartDate,
       EndDate,
       IssuerCountry,
+      QBR_Periods,
       Username,
       CardName   // <--- NEW FIELD passed to Power Apps
     });
